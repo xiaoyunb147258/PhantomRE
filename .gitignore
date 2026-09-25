@@ -1,0 +1,14 @@
+build/
+.gradle/
+.idea/
+*.iml
+.dart_tool/
+.flutter-plugins
+.packages
+android/local.properties
+android/.gradle/
+android/app/debug/
+android/app/release/
+captures/
+.cxx/
+.externalNativeBuild/
