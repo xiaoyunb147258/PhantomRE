@@ -8,7 +8,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
         android:label="PhantomRE"
-        android:name="${applicationName}"
+        android:name=".PhantomApp"
 
         android:requestLegacyExternalStorage="true"
         android:usesCleartextTraffic="true">
