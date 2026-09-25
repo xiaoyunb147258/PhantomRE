@@ -1,4 +1,4 @@
-name: Build PhantomRE APK
+name: Build PhantomRE APK with BlackBox Core
 
 on:
   push:
@@ -9,21 +9,47 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout PhantomRE
         uses: actions/checkout@v4
 
-      - name: Setup Java
+      - name: Setup Java 21
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
-          java-version: '17'
+          distribution: zulu
+          java-version: '21'
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.24.0'
-          channel: 'stable'
+          channel: stable
           cache: true
+
+      - name: Setup Android SDK and NDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install NDK 29
+        run: sdkmanager 'ndk;29.0.13846066'
+
+      - name: Clone NewBlackbox engine
+        run: git clone --depth 1 https://github.com/ALEX5402/NewBlackbox.git /tmp/nbb
+
+      - name: Copy modules into android
+        run: |
+          cp -r /tmp/nbb/Bcore android/Bcore
+          cp -r /tmp/nbb/black-reflection android/black-reflection
+          cp -r /tmp/nbb/compiler android/compiler
+          ls -la android/
+
+      - name: Patch settings.gradle
+        run: |
+          printf '%s\n' '' "include ':Bcore'" "include ':black-reflection'" "include ':compiler'" >> android/settings.gradle
+          cat android/settings.gradle
+
+      - name: Patch root build.gradle repositories
+        run: |
+          sed -i '/allprojects {/a\    repositories { maven { url "https://www.jitpack.io" } }' android/build.gradle || true
+          cat android/build.gradle
 
       - name: Flutter pub get
         run: flutter pub get
@@ -36,4 +62,3 @@ jobs:
         with:
           name: PhantomRE-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
-
