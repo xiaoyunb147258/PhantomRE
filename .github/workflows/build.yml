@@ -24,8 +24,11 @@ jobs:
           cache: true
       - name: Install NDK 29
         run: |
-          yes | sdkmanager --licenses > /dev/null 2>&1 || true
-          sdkmanager 'ndk;29.0.13846066'
+          SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          [ -x "$SDKM" ] || SDKM=$(find /usr/local/lib/android /opt -name sdkmanager -type f 2>/dev/null | head -1)
+          echo "sdkmanager=$SDKM"
+          yes | "$SDKM" --licenses > /dev/null 2>&1 || true
+          "$SDKM" 'ndk;29.0.13846066'
       - name: Clone NewBlackbox engine
         run: git clone --depth 1 https://github.com/ALEX5402/NewBlackbox.git /tmp/nbb
       - name: Copy modules into android
