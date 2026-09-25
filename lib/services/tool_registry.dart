@@ -36,9 +36,9 @@ class ToolRegistry {
       description: '对目标APK进行脱壳，dump出真实的dex文件。支持动态脱壳、静态脱壳、整体加固脱壳、so脱壳。',
       parameters: {'type':'object','properties':{
         'apk_path':{'type':'string'},
-        'mode':{'type':'string','enum':['dynamic','static','packed','so']}},
+        'mode':{'type':'string','enum':['动态脱壳','静态脱壳','整体加固','so脱壳']}},
         'required':['apk_path']},
-      run: (a) async => await PlatformBridge.unpack(a['apk_path'] ?? '', a['mode'] ?? 'dynamic'),
+      run: (a) async => await PlatformBridge.unpack(a['apk_path'] ?? '', a['mode'] ?? '动态脱壳'),
     ),
     PhantomTool(
       name: 'decompile',
@@ -53,9 +53,10 @@ class ToolRegistry {
       name: 'search_code',
       description: '在反编译结果中搜索代码，用于定位会员判断(isVip/unlock)、广告(ads)、Hook检测(frida/xposed)等关键逻辑。',
       parameters: {'type':'object','properties':{
+        'apk_path':{'type':'string','description':'目标APK路径'},
         'keyword':{'type':'string','description':'要搜索的关键字，如 isVip / isPremium / frida / ads'}},
-        'required':['keyword']},
-      run: (a) async => await PlatformBridge.searchCode(a['keyword'] ?? ''),
+        'required':['apk_path','keyword']},
+      run: (a) async => await PlatformBridge.searchCode(a['apk_path'] ?? '', a['keyword'] ?? ''),
     ),
     PhantomTool(
       name: 'gen_hook_script',
