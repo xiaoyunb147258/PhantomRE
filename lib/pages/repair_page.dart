@@ -26,7 +26,7 @@ class _RepairPageState extends State<RepairPage> {
   bool _running = false;
 
   final List<RepairStep> _steps = [
-    RepairStep('脱壳', 'Dump 出真实 dex', (a) => PlatformBridge.unpack(a, 'dynamic')),
+    RepairStep('脱壳', 'Dump 出真实 dex', (a) => PlatformBridge.unpack(a, '动态脱壳')),
     RepairStep('去签名校验', '绕过签名/完整性检测', (a) => PlatformBridge.bypassSignature(a)),
     RepairStep('防自毁', '阻止应用自毁逻辑', (a) => PlatformBridge.bypassDetection('selfdestruct')),
     RepairStep('防杀进程', '阻止被外部杀进程', (a) => PlatformBridge.bypassDetection('kill')),
