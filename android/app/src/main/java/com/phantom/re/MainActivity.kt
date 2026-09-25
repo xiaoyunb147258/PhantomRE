@@ -4,6 +4,12 @@ import android.os.Environment
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import com.phantom.re.engine.capture.CaptureEngine
+import com.phantom.re.engine.decompile.DecompileEngine
+import com.phantom.re.engine.detect.DetectEngine
+import com.phantom.re.engine.hook.HookEngine
+import com.phantom.re.engine.resource.ResourceEngine
+import com.phantom.re.engine.unpack.UnpackEngine
 import java.io.File
 
 class MainActivity : FlutterActivity() {
@@ -15,13 +21,12 @@ class MainActivity : FlutterActivity() {
             top.niunaijun.blackbox.BlackBoxCore.get().onBeforeMainActivityOnCreate(this)
             top.niunaijun.blackbox.BlackBoxCore.get().onAfterMainActivityOnCreate(this)
         } catch (e: Exception) {
-            android.util.Log.e("MainActivity", "blackbox activity hook: " + e.message)
+            android.util.Log.e("MainActivity", "blackbox hook: " + e.message)
         }
     }
 
-    /** 脱壳输出目录：/sdcard/Download/PhantomRE_unpack */
-    private fun outDir(): String {
-        val d = File(Environment.getExternalStorageDirectory(), "Download/PhantomRE_unpack")
+    private fun outDir(sub: String): String {
+        val d = File(Environment.getExternalStorageDirectory(), "Download/PhantomRE/$sub")
         if (!d.exists()) d.mkdirs()
         return d.absolutePath
     }
@@ -32,45 +37,67 @@ class MainActivity : FlutterActivity() {
             .setMethodCallHandler { call, result ->
                 val a = call.arguments as? Map<*, *> ?: mapOf<String, Any>()
                 val apk = a["apk_path"] as? String ?: ""
-                when (call.method) {
-                    "ping" -> result.success("pong from PhantomRE native")
-                    "getDeviceInfo" -> result.success(deviceInfo())
-                    "checkRoot" -> result.success(isRooted())
-                    "runShell" -> result.success(runShell(a["cmd"] as? String ?: ""))
-                    "installApk" -> result.success(installApk(a["path"] as? String ?: ""))
+                try {
+                    when (call.method) {
+                        "ping" -> result.success("pong")
+                        "getDeviceInfo" -> result.success(deviceInfo())
+                        "checkRoot" -> result.success(isRooted())
+                        "runShell" -> result.success(runShell(a["cmd"] as? String ?: ""))
+                        "installApk" -> result.success(installApk(a["path"] as? String ?: ""))
 
-                    // ==== 沙盒运行（BlackBox 引擎） ====
-                    "sandboxRun" -> result.success(sandboxRun(apk))
+                        "sandboxRun" -> result.success(sandboxRun(apk))
 
-                    // ==== 一键脱壳（BlackBox 沙盒 + dex dump） ====
-                    "unpack" -> result.success(DexDumper.oneClickUnpack(this, apk, outDir()))
-                    "oneClickRepair" -> result.success(DexDumper.oneClickUnpack(this, apk, outDir()))
+                        "unpack" -> result.success(
+                            UnpackEngine.unpack(this, apk, a["mode"] as? String ?: "动态脱壳", outDir("unpack")))
 
-                    // 其余内核能力：占位（后续轮次接入）
-                    "decompile" -> result.success(kernel("decompile", a["target"], a["type"]))
-                    "searchCode" -> result.success(kernel("search", a["keyword"]))
-                    "runHook" -> result.success(kernel("hook", a["package"]))
-                    "bypassSignature" -> result.success(kernel("bypass_sig", apk))
-                    "bypassDetection" -> result.success(kernel("bypass_det", a["types"]))
-                    "decryptResources" -> result.success(kernel("decrypt", apk, a["target"]))
-                    "captureTraffic" -> result.success(kernel("capture", a["action"]))
+                        "oneClickRepair" -> result.success(oneClickRepair(apk))
 
-                    else -> result.notImplemented()
+                        "decompile" -> result.success(
+                            DecompileEngine.unzipApk(this, apk, outDir("decompile")))
+                        "parseManifest" -> result.success(DecompileEngine.parseManifest(this, apk))
+                        "scanSensitive" -> result.success(DecompileEngine.scanSensitive(this, apk))
+                        "searchCode" -> result.success(
+                            DecompileEngine.searchCode(this, apk, a["keyword"] as? String ?: ""))
+
+                        "runHook" -> result.success(
+                            HookEngine.runHook(this, a["script"] as? String ?: "", a["package"] as? String ?: ""))
+                        "loadHookPreset" -> result.success(
+                            HookEngine.loadScript(this, a["name"] as? String ?: "hook_log"))
+
+                        "bypassSignature" -> result.success(DetectEngine.bypass(this, apk, "签名"))
+                        "bypassDetection" -> result.success(
+                            DetectEngine.bypass(this, apk, a["types"] as? String ?: "root"))
+
+                        "decryptResources" -> result.success(
+                            ResourceEngine.extract(this, apk, a["target"] as? String ?: "all", outDir("resource")))
+                        "extractStrings" -> result.success(ResourceEngine.extractStrings(this, apk))
+
+                        "captureTraffic" -> result.success(
+                            CaptureEngine.control(this, a["action"] as? String ?: "start"))
+                        "readLog" -> result.success(
+                            CaptureEngine.readLog(this, a["filter"] as? String ?: ""))
+
+                        else -> result.notImplemented()
+                    }
+                } catch (e: Exception) {
+                    result.success("ERR: ${e.message}")
                 }
             }
     }
 
-    /** 装入沙盒并启动 */
     private fun sandboxRun(apk: String): String {
         if (apk.isEmpty()) return "ERR: 未提供 APK 路径"
-        val sb = StringBuilder()
-        val pkg = DexDumper.installToSandbox(this, apk)
-        sb.append("安装: $pkg\n")
-        if (!pkg.startsWith("ERR")) {
-            val r = DexDumper.launchInSandbox(pkg)
-            sb.append("启动: $r\n")
-            sb.append("包名: $pkg\n")
-        }
+        return "安装: ${UnpackEngine.install(apk)}\n启动: ${UnpackEngine.launch(apk)}\n"
+    }
+
+    private fun oneClickRepair(apk: String): String {
+        val sb = StringBuilder("== 一键脱修 ==\n")
+        sb.append("[1] 脱壳\n").append(UnpackEngine.dynamicUnpack(this, apk, outDir("repair/dex"))).append("\n")
+        sb.append("[2] 去签名校验\n").append(DetectEngine.bypass(this, apk, "签名")).append("\n")
+        sb.append("[3] 防自毁/防杀\n").append(DetectEngine.bypass(this, apk, "root")).append("\n")
+        sb.append("[4] 解密 assets\n").append(ResourceEngine.extract(this, apk, "assets", outDir("repair/assets"))).append("\n")
+        sb.append("[5] 解密 lib\n").append(ResourceEngine.extract(this, apk, "lib", outDir("repair/lib"))).append("\n")
+        sb.append("== 完成 ==")
         return sb.toString()
     }
 
@@ -100,7 +127,4 @@ class MainActivity : FlutterActivity() {
         startActivity(intent)
         "installer_launched"
     } catch (e: Exception) { "ERR: ${e.message}" }
-
-    private fun kernel(tag: String, vararg args: Any?): String =
-        "[OK] $tag 指令已接收；内核接入后返回真实结果"
 }
