@@ -7,37 +7,46 @@ import top.niunaijun.blackbox.BlackBoxCore
 import top.niunaijun.blackbox.app.configuration.ClientConfiguration
 
 /**
- * 宿主 Application —— 正确初始化 BlackBox 虚拟化引擎。
- *
- * 关键：必须在 attachBaseContext 里调用 doAttachBaseContext(context, ClientConfiguration)，
- * 否则引擎的 ClientConfiguration 为 null，一用 installPackageAsUser 就报
- * "getHostPackageName() on a null object reference"。
+ * 宿主 Application —— 严格按 BlackBox 官方 demo (App.kt) 的顺序初始化。
+ * 顺序：closeCodeInit -> onBeforeMainApplicationAttach
+ *       -> doAttachBaseContext(base, ClientConfiguration)
+ *       -> onAfterMainApplicationAttach
+ *       -> doCreate()
  */
 class PhantomApp : Application() {
 
+    private lateinit var ctx: Context
+
     override fun attachBaseContext(base: Context?) {
-        super.attachBaseContext(base)
         try {
-            BlackBoxCore.get().doAttachBaseContext(base, object : ClientConfiguration() {
-                override fun getHostPackageName(): String = packageName
-                override fun isHideRoot(): Boolean = true
-                override fun isEnableDaemonService(): Boolean = true
-                override fun isUseVpnNetwork(): Boolean = false
-                override fun isDisableFlagSecure(): Boolean = true
-            })
-            Log.i("PhantomApp", "BlackBox doAttachBaseContext OK")
+            super.attachBaseContext(base)
+            if (base == null) return
+            ctx = base
+            try { BlackBoxCore.get().closeCodeInit() } catch (e: Exception) { Log.e("PhantomApp", "" + e.message) }
+            try { BlackBoxCore.get().onBeforeMainApplicationAttach(this, base) } catch (e: Exception) { Log.e("PhantomApp", "" + e.message) }
+            try {
+                BlackBoxCore.get().doAttachBaseContext(base, object : ClientConfiguration() {
+                    override fun getHostPackageName(): String = packageName
+                    override fun isHideRoot(): Boolean = true
+                    override fun isEnableDaemonService(): Boolean = true
+                    override fun isUseVpnNetwork(): Boolean = false
+                    override fun isDisableFlagSecure(): Boolean = true
+                })
+            } catch (e: Exception) { Log.e("PhantomApp", "attach: " + e.message) }
+            try { BlackBoxCore.get().onAfterMainApplicationAttach(this, base) } catch (e: Exception) { Log.e("PhantomApp", "" + e.message) }
+            Log.i("PhantomApp", "attachBaseContext done")
         } catch (e: Exception) {
-            Log.e("PhantomApp", "attach failed: " + e.message)
+            Log.e("PhantomApp", "critical: " + e.message)
         }
     }
 
     override fun onCreate() {
-        super.onCreate()
         try {
+            super.onCreate()
             BlackBoxCore.get().doCreate()
-            Log.i("PhantomApp", "BlackBox doCreate OK")
+            Log.i("PhantomApp", "doCreate done")
         } catch (e: Exception) {
-            Log.e("PhantomApp", "doCreate failed: " + e.message)
+            Log.e("PhantomApp", "doCreate: " + e.message)
         }
     }
 }
