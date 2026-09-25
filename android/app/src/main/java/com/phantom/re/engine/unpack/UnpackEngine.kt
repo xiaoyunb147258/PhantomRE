@@ -102,11 +102,15 @@ object UnpackEngine {
         else "ERR: 安装失败 ${res.msg ?: "未知"}"
     } catch (e: Exception) { "ERR: 安装异常 ${e.message}" }
 
-    fun launch(apkPath: String): String = try {
-        val res = BlackBoxCore.get().installPackageAsUser(apkPath, USER_ID)
-        val pkg = res.packageName ?: return "ERR: 无包名"
-        if (BlackBoxCore.get().launchApk(pkg, USER_ID)) "已启动 $pkg" else "ERR: 启动失败"
-    } catch (e: Exception) { "ERR: 启动异常 ${e.message}" }
+    fun launch(apkPath: String): String {
+        return try {
+            val res = BlackBoxCore.get().installPackageAsUser(apkPath, USER_ID)
+            val pkg = res.packageName
+            if (pkg == null) "ERR: 无包名"
+            else if (BlackBoxCore.get().launchApk(pkg, USER_ID)) "已启动 $pkg"
+            else "ERR: 启动失败"
+        } catch (e: Exception) { "ERR: 启动异常 ${e.message}" }
+    }
 
     fun dumpDex(ctx: Context, outDir: String): String {
         val out = File(outDir); if (!out.exists()) out.mkdirs()
