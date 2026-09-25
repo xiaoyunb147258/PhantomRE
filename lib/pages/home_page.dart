@@ -13,6 +13,7 @@ import 'log_page.dart';
 import 'module_page.dart';
 import 'ai_page.dart';
 import 'settings_page.dart';
+import 'repair_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -24,6 +25,7 @@ class _HomePageState extends State<HomePage> {
   String _deviceLine = 'device: loading...';
 
   final List<ToolItem> tools = const [
+    ToolItem(title:'一键脱修', desc:'脱壳+去签名+防自毁+防杀+解密资源', icon:Icons.auto_fix_high, color:Color(0xFFFF3D68), route:'repair'),
     ToolItem(title:'虚拟沙盒', desc:'安装/运行APK到内置沙盒', icon:Icons.security, color:AppTheme.neon, route:'sandbox'),
     ToolItem(title:'脱壳', desc:'整体加固/动态/静态脱壳', icon:Icons.layers, color:AppTheme.neonBlue, route:'unpack'),
     ToolItem(title:'动态Hook', desc:'Frida脚本执行与编辑', icon:Icons.cable, color:Color(0xFFFF7A00), route:'hook'),
@@ -55,6 +57,7 @@ class _HomePageState extends State<HomePage> {
   void _go(String route) {
     Widget p;
     switch (route) {
+      case 'repair': p = const RepairPage(); break;
       case 'sandbox': p = const SandboxPage(); break;
       case 'unpack': p = const UnpackPage(); break;
       case 'hook': p = const HookPage(); break;
