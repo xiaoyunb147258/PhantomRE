@@ -29,4 +29,54 @@ class PlatformBridge {
     try { return await _ch.invokeMethod('installApk', {'path': path}); }
     catch (e) { return 'ERR: $e'; }
   }
+
+  static Future<String> sandboxRun(String apkPath) async {
+    try { return await _ch.invokeMethod('sandboxRun', {'apk_path': apkPath}); }
+    catch (e) { return 'ERR(kernel): $e'; }
+  }
+
+  static Future<String> unpack(String apkPath, String mode) async {
+    try { return await _ch.invokeMethod('unpack', {'apk_path': apkPath, 'mode': mode}); }
+    catch (e) { return 'ERR(kernel): $e'; }
+  }
+
+  static Future<String> decompile(String target, String type) async {
+    try { return await _ch.invokeMethod('decompile', {'target': target, 'type': type}); }
+    catch (e) { return 'ERR(kernel): $e'; }
+  }
+
+  static Future<String> searchCode(String keyword) async {
+    try { return await _ch.invokeMethod('searchCode', {'keyword': keyword}); }
+    catch (e) { return 'ERR(kernel): $e'; }
+  }
+
+  static Future<String> runHook(String script, String packageName) async {
+    try { return await _ch.invokeMethod('runHook', {'script': script, 'package': packageName}); }
+    catch (e) { return 'ERR(kernel): $e'; }
+  }
+
+  static Future<String> bypassSignature(String apkPath) async {
+    try { return await _ch.invokeMethod('bypassSignature', {'apk_path': apkPath}); }
+    catch (e) { return 'ERR(kernel): $e'; }
+  }
+
+  static Future<String> bypassDetection(String types) async {
+    try { return await _ch.invokeMethod('bypassDetection', {'types': types}); }
+    catch (e) { return 'ERR(kernel): $e'; }
+  }
+
+  static Future<String> decryptResources(String apkPath, String target) async {
+    try { return await _ch.invokeMethod('decryptResources', {'apk_path': apkPath, 'target': target}); }
+    catch (e) { return 'ERR(kernel): $e'; }
+  }
+
+  static Future<String> captureTraffic(String action) async {
+    try { return await _ch.invokeMethod('captureTraffic', {'action': action}); }
+    catch (e) { return 'ERR(kernel): $e'; }
+  }
+
+  static Future<String> oneClickRepair(String apkPath) async {
+    try { return await _ch.invokeMethod('oneClickRepair', {'apk_path': apkPath}); }
+    catch (e) { return 'ERR(kernel): $e'; }
+  }
 }
