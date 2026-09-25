@@ -41,6 +41,11 @@ jobs:
         run: |
           printf '%s\n' '' "include ':Bcore'" "include ':black-reflection'" "include ':compiler'" >> android/settings.gradle
           cat android/settings.gradle
+      - name: Patch root build.gradle
+        run: |
+          printf '%s\n' '' 'ext {' '    compileSdkVersion = 35' '    minSdk = 29' '    targetSdkVersion = 34' '    versionCode = 1' "    versionName = '1.0.0'" '}' >> android/build.gradle
+          printf '%s\n' '' 'allprojects {' '    repositories {' '        maven { url "https://www.jitpack.io" }' '        google()' '        mavenCentral()' '    }' '}' >> android/build.gradle
+          cat android/build.gradle
       - name: Flutter pub get
         run: flutter pub get
       - name: Build APK
