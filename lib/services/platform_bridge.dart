@@ -41,12 +41,37 @@ class PlatformBridge {
   }
 
   static Future<String> decompile(String target, String type) async {
-    try { return await _ch.invokeMethod('decompile', {'target': target, 'type': type}); }
+    try { return await _ch.invokeMethod('decompile', {'apk_path': target, 'type': type}); }
     catch (e) { return 'ERR(kernel): $e'; }
   }
 
-  static Future<String> searchCode(String keyword) async {
-    try { return await _ch.invokeMethod('searchCode', {'keyword': keyword}); }
+  static Future<String> searchCode(String apkPath, String keyword) async {
+    try { return await _ch.invokeMethod('searchCode', {'apk_path': apkPath, 'keyword': keyword}); }
+    catch (e) { return 'ERR(kernel): $e'; }
+  }
+
+  static Future<String> parseManifest(String apkPath) async {
+    try { return await _ch.invokeMethod('parseManifest', {'apk_path': apkPath}); }
+    catch (e) { return 'ERR(kernel): $e'; }
+  }
+
+  static Future<String> scanSensitive(String apkPath) async {
+    try { return await _ch.invokeMethod('scanSensitive', {'apk_path': apkPath}); }
+    catch (e) { return 'ERR(kernel): $e'; }
+  }
+
+  static Future<String> extractStrings(String apkPath) async {
+    try { return await _ch.invokeMethod('extractStrings', {'apk_path': apkPath}); }
+    catch (e) { return 'ERR(kernel): $e'; }
+  }
+
+  static Future<String> loadHookPreset(String name) async {
+    try { return await _ch.invokeMethod('loadHookPreset', {'name': name}); }
+    catch (e) { return 'ERR(kernel): $e'; }
+  }
+
+  static Future<String> readLog(String filter) async {
+    try { return await _ch.invokeMethod('readLog', {'filter': filter}); }
     catch (e) { return 'ERR(kernel): $e'; }
   }
 
