@@ -12,7 +12,7 @@ def flutterVersionCode = localProperties.getProperty('flutter.versionCode') ?: '
 def flutterVersionName = localProperties.getProperty('flutter.versionName') ?: '1.0.0'
 android {
     namespace "com.phantom.re"
-    compileSdk 34
+    compileSdk 35
     defaultConfig {
         applicationId "com.phantom.re"
         minSdk 29
