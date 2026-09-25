@@ -23,6 +23,30 @@ class MainActivity : FlutterActivity() {
         } catch (e: Exception) {
             android.util.Log.e("MainActivity", "blackbox hook: " + e.message)
         }
+        requestStoragePermission()
+    }
+
+    /** 申请存储权限（Android 11+ 需 MANAGE_EXTERNAL_STORAGE 才能写 /sdcard/Download） */
+    private fun requestStoragePermission() {
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= 30) {
+                if (!android.os.Environment.isExternalStorageManager()) {
+                    val intent = android.content.Intent(
+                        android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                    intent.data = android.net.Uri.parse("package:$packageName")
+                    startActivity(intent)
+                }
+            } else {
+                if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                    requestPermissions(arrayOf(
+                        android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE), 1001)
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "perm: " + e.message)
+        }
     }
 
     private fun outDir(sub: String): String {
