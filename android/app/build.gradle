@@ -13,12 +13,16 @@ def flutterVersionName = localProperties.getProperty('flutter.versionName') ?: '
 android {
     namespace "com.phantom.re"
     compileSdk 35
+    ndkVersion "29.0.13846066"
     defaultConfig {
         applicationId "com.phantom.re"
         minSdk 29
         targetSdk 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        ndk {
+            abiFilters 'arm64-v8a', 'armeabi-v7a'
+        }
     }
     buildTypes {
         release {
@@ -28,9 +32,21 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
     }
-    kotlinOptions { jvmTarget = '17' }
+    kotlinOptions { jvmTarget = '21' }
+    packaging {
+        jniLibs {
+            useLegacyPackaging true
+            excludes += ["**/libandroidx.graphics.path.so"]
+        }
+    }
 }
 flutter { source '../..' }
+
+dependencies {
+    implementation project(':Bcore')
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'com.tencent:mmkv-static:1.2.10'
+}
