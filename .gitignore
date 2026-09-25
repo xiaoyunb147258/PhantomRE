@@ -12,3 +12,4 @@ android/app/release/
 captures/
 .cxx/
 .externalNativeBuild/
+.backup/
