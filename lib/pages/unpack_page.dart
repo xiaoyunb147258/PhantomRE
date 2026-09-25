@@ -22,10 +22,10 @@ class _UnpackPageState extends State<UnpackPage> {
 
   Future<void> _run() async {
     if (_apk == null) { setState(() => _out = '请先选择 APK'); return; }
-    setState(() => _out = '>> [$_mode] 处理中...\n目标: $_apk');
-    // 内核接口预留：真实脱壳在集成 BlackDex/frida-dexdump 后接入
-    final r = await PlatformBridge.runShell('echo "unpack mode=$_mode target=$_apk"');
-    setState(() => _out = '>> $_mode 指令已下发\n$r\n\n[提示] 脱壳内核加载后此处将输出 dex 列表');
+    setState(() => _out = '>> [$_mode] 脱壳中，请稍候...\n目标: $_apk');
+    // 真实脱壳：调用 BlackBox 沙盒 + DexDumper
+    final r = await PlatformBridge.unpack(_apk!, _mode);
+    setState(() => _out = r);
   }
 
   @override
